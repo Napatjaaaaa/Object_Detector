@@ -7,51 +7,21 @@
   <style>
     body {
       font-family: 'Kanit', sans-serif;
-      margin: 0;
+      text-align: center;
+      margin: 20px;
       background: url('https://ckk88.com/wp-content/uploads/2024/06/KID-A-50.jpg') no-repeat center center fixed;
       background-size: cover;
       color: #333;
     }
-
-    #startScreen {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      background-color: rgba(255, 255, 255, 0.7);
-      padding: 20px;
-    }
-
     h1 {
-      font-size: 2.6em;
+      font-size: 2.2em;
       color: #ff69b4;
       text-shadow: 1px 1px #fff;
-      margin-bottom: 30px;
     }
-
     #startScreen p {
       font-size: 18px;
       color: #555;
     }
-
-    #startBtn {
-      font-size: 24px;
-      padding: 15px 30px;
-      background-color: #ffd700;
-      color: #333;
-      border: none;
-      border-radius: 15px;
-      cursor: pointer;
-      box-shadow: 2px 2px 5px #aaa;
-      margin-bottom: 20px;
-    }
-
-    #startBtn:hover {
-      transform: scale(1.05);
-    }
-
     video {
       border: 20px solid transparent;
       width: 80%;
@@ -62,12 +32,9 @@
       box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
       border-image: url('https://cdn.pixabay.com/photo/2023/11/06/22/01/flowers-8370534_640.jpg') 30 round;
     }
-
     #controls {
       margin-top: 20px;
-      text-align: center;
     }
-
     button, label, select {
       font-size: 18px;
       padding: 10px 20px;
@@ -77,25 +44,20 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
     button:hover {
       transform: scale(1.05);
     }
-
     button {
       background-color: #ffd700;
       color: #333;
       box-shadow: 2px 2px 5px #aaa;
     }
-
     #toggleCamBtn { background-color: #ffb6c1; }
     #toggleDetectBtn { background-color: #87cefa; }
     #muteBtn { background-color: #90ee90; }
-
     select {
       background-color: #f0e68c;
     }
-
     #volumeSlider {
       appearance: none;
       width: 300px;
@@ -105,7 +67,6 @@
       outline: none;
       margin-top: 10px;
     }
-
     #volumeSlider::-webkit-slider-thumb {
       appearance: none;
       width: 40px;
@@ -114,19 +75,16 @@
       cursor: pointer;
       border: none;
     }
-
     #volumeValue {
       font-weight: bold;
       color: #e91e63;
       font-size: 20px;
     }
-
     #message {
       color: red;
       margin: 15px;
       font-weight: bold;
     }
-
     #label {
       margin-top: 20px;
       font-size: 22px;
@@ -135,22 +93,25 @@
   </style>
 </head>
 <body>
+  <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูดสำหรับเด็ก</h1>
 
   <div id="startScreen">
-    <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูดสำหรับเด็ก</h1>
-    <button id="startBtn">🎉 กดเริ่มใช้งาน 🎉</button>
+    <button id="startBtn" style="font-size:24px; padding: 15px 30px;">🎉 กดเริ่มใช้งาน 🎉</button>
     <p>โปรดกดปุ่มเพื่อเปิดกล้องและอนุญาตเสียงพูด</p>
   </div>
 
   <p id="message"></p>
+
   <video id="webcam" autoplay muted playsinline style="display:none;"></video>
 
   <div id="controls" style="display:none;">
     <button id="toggleCamBtn">📷 ปิดกล้อง</button>
     <button id="toggleDetectBtn">🛑 หยุดตรวจจับ</button>
     <button id="muteBtn">🔇 ปิดเสียงพูด</button><br />
+
     <label for="cameraSelect">เลือกกล้อง: </label>
     <select id="cameraSelect"></select><br />
+
     <label for="volumeSlider">เสียงพูด: <span id="volumeValue">100</span>%</label><br />
     <input type="range" id="volumeSlider" min="0" max="100" value="100" />
   </div>
@@ -205,7 +166,7 @@
           option.text = device.label || `กล้อง ${cameraSelect.length + 1}`;
           cameraSelect.appendChild(option);
         });
-        if (videoDevices.length > 0) {
+        if(videoDevices.length > 0) {
           currentDeviceId = videoDevices[0].deviceId;
           cameraSelect.value = currentDeviceId;
         }
@@ -246,7 +207,7 @@
     }
 
     function speak(text) {
-      if (isMuted) return;
+      if(isMuted) return;
       const now = Date.now();
       if (!lastSpokenTimes[text] || (now - lastSpokenTimes[text] > 3000)) {
         if (speechSynthesis.speaking) {
@@ -375,6 +336,5 @@
       listCameras();
     }
   </script>
-
 </body>
 </html>
