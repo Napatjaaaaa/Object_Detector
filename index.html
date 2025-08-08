@@ -163,7 +163,7 @@
         videoDevices.forEach(device => {
           const option = document.createElement('option');
           option.value = device.deviceId;
-          option.text = device.label || `กล้อง ${cameraSelect.length + 1}`;
+          option.text = device.label || กล้อง ${cameraSelect.length + 1};
           cameraSelect.appendChild(option);
         });
         if(videoDevices.length > 0) {
@@ -235,7 +235,7 @@
           for (const prediction of predictions) {
             if (labelDict[prediction.class]) {
               const thaiName = labelDict[prediction.class];
-              label.textContent = `พบวัตถุ: ${thaiName}`;
+              label.textContent = พบวัตถุ: ${thaiName};
               speak(thaiName);
               found = true;
               break;
