@@ -1,87 +1,366 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Object Detector with Voice</title>
+  <meta charset="UTF-8" />
+  <title>AI Object Detector with Voice (เด็ก)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body { text-align: center; font-family: sans-serif; }
-    video { border: 2px solid black; width: 80%; max-width: 640px; margin: 10px auto; }
-    canvas { display: none; }
+    body {
+      font-family: 'Kanit', sans-serif;
+      text-align: center;
+      margin: 20px;
+      background: url('https://ckk88.com/wp-content/uploads/2024/06/KID-A-50.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      color: #ff69b4;
+      text-shadow: 1px 1px #fff;
+    }
+
+    #startScreen p {
+      font-size: 18px;
+      color: #555;
+    }
+
+    video {
+      border: 20px solid transparent;
+      width: 80%;
+      max-width: 640px;
+      margin: 20px auto;
+      display: block;
+      padding: 20px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+      border-image: url('https://png.pngtree.com/png-vector/20220114/ourmid/pngtree-star-border-png-image_4301750.png') 30 round;
+    }
+
+    #catImage {
+      width: 150px;
+      margin-top: 15px;
+    }
+
+    #controls {
+      margin-top: 20px;
+    }
+
+    button, label, select {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 8px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    button {
+      background-color: #ffd700;
+      color: #333;
+      box-shadow: 2px 2px 5px #aaa;
+    }
+
+    #toggleCamBtn { background-color: #ffb6c1; }
+    #toggleDetectBtn { background-color: #87cefa; }
+    #muteBtn { background-color: #90ee90; }
+
+    select {
+      background-color: #f0e68c;
+    }
+
+    #volumeSlider {
+      appearance: none;
+      width: 300px;
+      height: 15px;
+      background: #ffe4e1;
+      border-radius: 10px;
+      outline: none;
+      margin-top: 10px;
+    }
+
+    #volumeSlider::-webkit-slider-thumb {
+      appearance: none;
+      width: 40px;
+      height: 40px;
+      background: url('https://i.imgur.com/bVJm9dh.png') center/contain no-repeat;
+      cursor: pointer;
+      border: none;
+    }
+
+    #volumeValue {
+      font-weight: bold;
+      color: #e91e63;
+      font-size: 20px;
+    }
+
+    #message {
+      color: red;
+      margin: 15px;
+      font-weight: bold;
+    }
+
+    #label {
+      margin-top: 20px;
+      font-size: 22px;
+      color: #6a1b9a;
+    }
   </style>
 </head>
 <body>
-  <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูด</h1>
-  <video id="webcam" autoplay muted></video>
-  <canvas id="canvas"></canvas>
-  <p id="label">กำลังโหลดโมเดล...</p>
 
+  <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูดสำหรับเด็ก</h1>
+
+  <div id="startScreen">
+    <button id="startBtn" style="font-size:24px; padding: 15px 30px;">🎉 กดเริ่มใช้งาน 🎉</button>
+    <p>โปรดกดปุ่มเพื่อเปิดกล้องและอนุญาตเสียงพูด</p>
+  </div>
+
+  <p id="message"></p>
+
+  <video id="webcam" autoplay muted playsinline style="display:none;"></video>
+
+  <img id="catImage" src="https://i.pinimg.com/236x/5c/bb/04/5cbb0499aa8a3149e20dc0c5b869a548.jpg" alt="รูปแมว" style="display:none;" />
+
+  <div id="controls" style="display:none;">
+    <button id="toggleCamBtn">📷 ปิดกล้อง</button>
+    <button id="toggleDetectBtn">🛑 หยุดตรวจจับ</button>
+    <button id="muteBtn">🔇 ปิดเสียงพูด</button><br />
+
+    <label for="cameraSelect">เลือกกล้อง: </label>
+    <select id="cameraSelect"></select><br />
+
+    <label for="volumeSlider">เสียงพูด: <span id="volumeValue">100</span>%</label><br />
+    <input type="range" id="volumeSlider" min="0" max="100" value="100" />
+  </div>
+
+  <p id="label"></p>
+
+  <!-- JS Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-  <script>
-    const video = document.getElementById('webcam');
-    const label = document.getElementById('label');
-    let model;
-    let lastSpoken = '';
 
-    async function setupCamera() {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false
-      });
-      video.srcObject = stream;
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const startScreen = document.getElementById('startScreen');
+    const video = document.getElementById('webcam');
+    const controls = document.getElementById('controls');
+    const toggleCamBtn = document.getElementById('toggleCamBtn');
+    const toggleDetectBtn = document.getElementById('toggleDetectBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const volumeValue = document.getElementById('volumeValue');
+    const label = document.getElementById('label');
+    const cameraSelect = document.getElementById('cameraSelect');
+    const message = document.getElementById('message');
+    const catImage = document.getElementById('catImage');
+
+    let model;
+    let stream = null;
+    let isCameraOn = false;
+    let detecting = true;
+    let isMuted = false;
+    let lastSpokenTimes = {};
+    let speechVolume = 1.0;
+    let currentDeviceId = null;
+
+    const labelDict = {
+      "chair": "เก้าอี้", "couch": "โซฟา", "bed": "เตียง", "dining table": "โต๊ะ",
+      "tv": "ทีวี", "cell phone": "โทรศัพท์", "book": "หนังสือ", "bottle": "ขวดน้ำ",
+      "cup": "ถ้วย", "bowl": "ชาม", "remote": "รีโมท", "mouse": "เมาส์",
+      "keyboard": "คีย์บอร์ด", "laptop": "โน้ตบุ๊ก", "microwave": "ไมโครเวฟ",
+      "sports ball": "ลูกบอล", "scissors": "กรรไกร", "backpack": "กระเป๋า",
+      "teddy bear": "ตุ๊กตา", "pen": "ปากกา", "pencil": "ดินสอ", "eraser": "ยางลบ",
+      "headphones": "หูฟัง", "box": "กล่อง"
+    };
+
+    async function listCameras() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        cameraSelect.innerHTML = '';
+        videoDevices.forEach(device => {
+          const option = document.createElement('option');
+          option.value = device.deviceId;
+          option.text = device.label || `กล้อง ${cameraSelect.length + 1}`;
+          cameraSelect.appendChild(option);
+        });
+        if(videoDevices.length > 0) {
+          currentDeviceId = videoDevices[0].deviceId;
+          cameraSelect.value = currentDeviceId;
+        }
+      } catch (e) {
+        message.textContent = 'ไม่สามารถดึงรายชื่อกล้องได้: ' + e.message;
+      }
+    }
+
+    async function setupCamera(deviceId = null) {
+      try {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+        const constraints = {
+          video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
+          audio: false
+        };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        return new Promise(resolve => {
+          video.onloadedmetadata = () => resolve();
+        });
+      } catch (e) {
+        message.textContent = 'ไม่สามารถเปิดกล้องได้: ' + e.message;
+        throw e;
+      }
+    }
+
+    async function unlockAudio() {
       return new Promise(resolve => {
-        video.onloadedmetadata = () => resolve(video);
+        const utter = new SpeechSynthesisUtterance('');
+        utter.volume = 0;
+        utter.lang = "th-TH";
+        utter.onend = () => resolve();
+        speechSynthesis.speak(utter);
       });
     }
 
     function speak(text) {
-      if (text !== lastSpoken) {
+      if(isMuted) return;
+      const now = Date.now();
+      if (!lastSpokenTimes[text] || (now - lastSpokenTimes[text] > 3000)) {
+        if (speechSynthesis.speaking) {
+          speechSynthesis.cancel();
+        }
         const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "th-TH"; // ให้เสียงเป็นภาษาไทย
+        utter.lang = "th-TH";
+        utter.volume = speechVolume;
         speechSynthesis.speak(utter);
-        lastSpoken = text;
+        lastSpokenTimes[text] = now;
       }
     }
 
-    // แปลชื่อวัตถุเป็นภาษาไทย
-    const labelDict = {
-      "apple": "แอปเปิล",
-      "bottle": "ขวดน้ำ",
-      "banana": "กล้วย",
-      "sports ball": "ลูกบอล"
-      // เพิ่มตามต้องการ
-    };
-
     async function detectFrame() {
-      const predictions = await model.detect(video);
-
-      if (predictions.length > 0) {
-        const name = predictions[0].class;
-
-        if (name !== "person") {
-          const thaiName = labelDict[name] || name;
-          label.textContent = `พบวัตถุ: ${thaiName}`;
-          speak(thaiName);
-        } else {
-          label.textContent = "พบวัตถุ: คน (ไม่พูด)";
+      if (!detecting) return;
+      try {
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          requestAnimationFrame(detectFrame);
+          return;
         }
 
-      } else {
-        label.textContent = "ไม่พบวัตถุ";
+        const predictions = await model.detect(video);
+        if (predictions.length > 0) {
+          let found = false;
+          for (const prediction of predictions) {
+            if (labelDict[prediction.class]) {
+              const thaiName = labelDict[prediction.class];
+              label.textContent = `พบวัตถุ: ${thaiName}`;
+              speak(thaiName);
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            label.textContent = "พบวัตถุที่ไม่มีคำแปลภาษาไทย (ไม่พูด)";
+          }
+        } else {
+          label.textContent = "กำลังตรวจจับวัตถุ...";
+        }
+      } catch (e) {
+        message.textContent = "เกิดข้อผิดพลาดในการตรวจจับ: " + e.message;
       }
-
       requestAnimationFrame(detectFrame);
     }
 
-    async function main() {
-      await setupCamera();
-      video.play();
-      model = await cocoSsd.load();
-      label.textContent = "พร้อมตรวจจับแล้ว!";
-      detectFrame();
+    async function startCameraAndDetect(deviceId = null) {
+      message.textContent = '';
+      try {
+        await setupCamera(deviceId);
+        video.style.display = 'block';
+        catImage.style.display = 'block';
+
+        const trackLabel = stream.getVideoTracks()[0].label.toLowerCase();
+        video.style.transform = trackLabel.includes('front') ? 'scaleX(-1)' : 'none';
+
+        if (!model) {
+          label.textContent = "กำลังโหลดโมเดล...";
+          model = await cocoSsd.load();
+        }
+
+        label.textContent = "พร้อมตรวจจับวัตถุ!";
+        detecting = true;
+        detectFrame();
+        isCameraOn = true;
+        toggleCamBtn.textContent = "📷 ปิดกล้อง";
+        toggleDetectBtn.textContent = "🛑 หยุดตรวจจับ";
+        muteBtn.textContent = isMuted ? '🔈 เปิดเสียงพูด' : '🔇 ปิดเสียงพูด';
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    main();
+    function stopCameraAndDetect() {
+      detecting = false;
+      label.textContent = "";
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+      video.style.display = 'none';
+      catImage.style.display = 'none';
+      isCameraOn = false;
+      toggleCamBtn.textContent = "📷 เปิดกล้อง";
+    }
+
+    toggleCamBtn.addEventListener('click', () => {
+      if (isCameraOn) stopCameraAndDetect();
+      else startCameraAndDetect(currentDeviceId);
+    });
+
+    toggleDetectBtn.addEventListener('click', () => {
+      detecting = !detecting;
+      toggleDetectBtn.textContent = detecting ? '🛑 หยุดตรวจจับ' : '▶️ เริ่มตรวจจับ';
+      if (detecting) detectFrame();
+      else label.textContent = 'หยุดตรวจจับแล้ว';
+    });
+
+    muteBtn.addEventListener('click', () => {
+      isMuted = !isMuted;
+      muteBtn.textContent = isMuted ? '🔈 เปิดเสียงพูด' : '🔇 ปิดเสียงพูด';
+    });
+
+    volumeSlider.addEventListener('input', () => {
+      const val = volumeSlider.value;
+      volumeValue.textContent = val;
+      speechVolume = val / 100;
+    });
+
+    cameraSelect.addEventListener('change', () => {
+      currentDeviceId = cameraSelect.value;
+      if (isCameraOn) startCameraAndDetect(currentDeviceId);
+    });
+
+    startBtn.addEventListener('click', async () => {
+      startScreen.style.display = 'none';
+      controls.style.display = 'block';
+      try {
+        await unlockAudio();
+        await listCameras();
+        await startCameraAndDetect(currentDeviceId);
+      } catch (e) {
+        message.textContent = 'ไม่สามารถเริ่มใช้งานได้: ' + e.message;
+      }
+    });
+
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+      listCameras();
+    }
   </script>
+
 </body>
 </html>
