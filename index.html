@@ -13,15 +13,18 @@
       background-size: cover;
       color: #333;
     }
+
     h1 {
       font-size: 2.2em;
       color: #ff69b4;
       text-shadow: 1px 1px #fff;
     }
+
     #startScreen p {
       font-size: 18px;
       color: #555;
     }
+
     video {
       border: 20px solid transparent;
       width: 80%;
@@ -32,9 +35,16 @@
       box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
       border-image: url('https://cdn.pixabay.com/photo/2023/11/06/22/01/flowers-8370534_640.jpg') 30 round;
     }
+
+    #catImage {
+      width: 150px;
+      margin-top: 15px;
+    }
+
     #controls {
       margin-top: 20px;
     }
+
     button, label, select {
       font-size: 18px;
       padding: 10px 20px;
@@ -44,20 +54,25 @@
       cursor: pointer;
       transition: 0.3s;
     }
+
     button:hover {
       transform: scale(1.05);
     }
+
     button {
       background-color: #ffd700;
       color: #333;
       box-shadow: 2px 2px 5px #aaa;
     }
+
     #toggleCamBtn { background-color: #ffb6c1; }
     #toggleDetectBtn { background-color: #87cefa; }
     #muteBtn { background-color: #90ee90; }
+
     select {
       background-color: #f0e68c;
     }
+
     #volumeSlider {
       appearance: none;
       width: 300px;
@@ -67,6 +82,7 @@
       outline: none;
       margin-top: 10px;
     }
+
     #volumeSlider::-webkit-slider-thumb {
       appearance: none;
       width: 40px;
@@ -75,16 +91,19 @@
       cursor: pointer;
       border: none;
     }
+
     #volumeValue {
       font-weight: bold;
       color: #e91e63;
       font-size: 20px;
     }
+
     #message {
       color: red;
       margin: 15px;
       font-weight: bold;
     }
+
     #label {
       margin-top: 20px;
       font-size: 22px;
@@ -93,6 +112,7 @@
   </style>
 </head>
 <body>
+
   <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูดสำหรับเด็ก</h1>
 
   <div id="startScreen">
@@ -103,6 +123,8 @@
   <p id="message"></p>
 
   <video id="webcam" autoplay muted playsinline style="display:none;"></video>
+
+  <img id="catImage" src="https://i.pinimg.com/236x/5c/bb/04/5cbb0499aa8a3149e20dc0c5b869a548.jpg" alt="รูปแมว" style="display:none;" />
 
   <div id="controls" style="display:none;">
     <button id="toggleCamBtn">📷 ปิดกล้อง</button>
@@ -135,6 +157,7 @@
     const label = document.getElementById('label');
     const cameraSelect = document.getElementById('cameraSelect');
     const message = document.getElementById('message');
+    const catImage = document.getElementById('catImage');
 
     let model;
     let stream = null;
@@ -258,6 +281,7 @@
       try {
         await setupCamera(deviceId);
         video.style.display = 'block';
+        catImage.style.display = 'block';
 
         const trackLabel = stream.getVideoTracks()[0].label.toLowerCase();
         video.style.transform = trackLabel.includes('front') ? 'scaleX(-1)' : 'none';
@@ -288,6 +312,7 @@
       }
       video.srcObject = null;
       video.style.display = 'none';
+      catImage.style.display = 'none';
       isCameraOn = false;
       toggleCamBtn.textContent = "📷 เปิดกล้อง";
     }
@@ -336,5 +361,6 @@
       listCameras();
     }
   </script>
+
 </body>
 </html>
