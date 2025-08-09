@@ -1,122 +1,23 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Object Detector with Voice (เด็ก)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet" />
+  <title>AI Object Detector with Voice (Full Features)</title>
   <style>
-    body {
-      font-family: 'Kanit', sans-serif;
-      text-align: center;
-      margin: 20px;
-      background: url('https://ckk88.com/wp-content/uploads/2024/06/KID-A-50.jpg') no-repeat center center fixed;
-      background-size: cover;
-      color: #333;
-    }
-
-    h1 {
-      font-size: 2.2em;
-      color: #ff69b4;
-      text-shadow: 1px 1px #fff;
-    }
-
-    #startScreen p {
-      font-size: 18px;
-      color: #555;
-    }
-
-    video {
-      border: 20px solid transparent;
-      width: 80%;
-      max-width: 640px;
-      margin: 20px auto;
-      display: block;
-      padding: 20px;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
-      border-image: url('https://cdn.pixabay.com/photo/2023/11/06/22/01/flowers-8370534_640.jpg') 30 round;
-    }
-
-    #catImage {
-      width: 150px;
-      margin-top: 15px;
-    }
-
-    #controls {
-      margin-top: 20px;
-    }
-
-    button, label, select {
-      font-size: 18px;
-      padding: 10px 20px;
-      margin: 8px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      transform: scale(1.05);
-    }
-
-    button {
-      background-color: #ffd700;
-      color: #333;
-      box-shadow: 2px 2px 5px #aaa;
-    }
-
-    #toggleCamBtn { background-color: #ffb6c1; }
-    #toggleDetectBtn { background-color: #87cefa; }
-    #muteBtn { background-color: #90ee90; }
-
-    select {
-      background-color: #f0e68c;
-    }
-
-    #volumeSlider {
-      appearance: none;
-      width: 300px;
-      height: 15px;
-      background: #ffe4e1;
-      border-radius: 10px;
-      outline: none;
-      margin-top: 10px;
-    }
-
-    #volumeSlider::-webkit-slider-thumb {
-      appearance: none;
-      width: 40px;
-      height: 40px;
-      background: url('https://i.imgur.com/bVJm9dh.png') center/contain no-repeat;
-      cursor: pointer;
-      border: none;
-    }
-
-    #volumeValue {
-      font-weight: bold;
-      color: #e91e63;
-      font-size: 20px;
-    }
-
-    #message {
-      color: red;
-      margin: 15px;
-      font-weight: bold;
-    }
-
-    #label {
-      margin-top: 20px;
-      font-size: 22px;
-      color: #6a1b9a;
-    }
+    body { font-family: sans-serif; text-align: center; margin: 20px; }
+    video { border: 2px solid black; width: 80%; max-width: 640px; margin: 10px auto; display: block; }
+    #controls { margin-top: 10px; }
+    button, label, select { font-size: 16px; margin: 5px; }
+    #volumeValue { font-weight: bold; }
+    #message { color: red; margin: 10px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูดสำหรับเด็ก</h1>
+  <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูด</h1>
 
   <div id="startScreen">
-    <button id="startBtn" style="font-size:24px; padding: 15px 30px;">🎉 กดเริ่มใช้งาน 🎉</button>
+    <button id="startBtn" style="font-size:24px; padding: 15px 30px;">กดเริ่มใช้งาน</button>
     <p>โปรดกดปุ่มเพื่อเปิดกล้องและอนุญาตเสียงพูด</p>
   </div>
 
@@ -124,12 +25,11 @@
 
   <video id="webcam" autoplay muted playsinline style="display:none;"></video>
 
-  <img id="catImage" src="https://i.pinimg.com/236x/5c/bb/04/5cbb0499aa8a3149e20dc0c5b869a548.jpg" alt="รูปแมว" style="display:none;" />
-
   <div id="controls" style="display:none;">
-    <button id="toggleCamBtn">📷 ปิดกล้อง</button>
-    <button id="toggleDetectBtn">🛑 หยุดตรวจจับ</button>
-    <button id="muteBtn">🔇 ปิดเสียงพูด</button><br />
+    <button id="toggleCamBtn">ปิดกล้อง</button>
+    <!-- <button id="switchCamBtn">สลับกล้อง</button> ปุ่มนี้ถูกลบออก -->
+    <button id="toggleDetectBtn">หยุดตรวจจับ</button>
+    <button id="muteBtn">ปิดเสียงพูด</button><br />
 
     <label for="cameraSelect">เลือกกล้อง: </label>
     <select id="cameraSelect"></select><br />
@@ -140,7 +40,6 @@
 
   <p id="label"></p>
 
-  <!-- JS Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
@@ -157,7 +56,6 @@
     const label = document.getElementById('label');
     const cameraSelect = document.getElementById('cameraSelect');
     const message = document.getElementById('message');
-    const catImage = document.getElementById('catImage');
 
     let model;
     let stream = null;
@@ -169,13 +67,30 @@
     let currentDeviceId = null;
 
     const labelDict = {
-      "chair": "เก้าอี้", "couch": "โซฟา", "bed": "เตียง", "dining table": "โต๊ะ",
-      "tv": "ทีวี", "cell phone": "โทรศัพท์", "book": "หนังสือ", "bottle": "ขวดน้ำ",
-      "cup": "ถ้วย", "bowl": "ชาม", "remote": "รีโมท", "mouse": "เมาส์",
-      "keyboard": "คีย์บอร์ด", "laptop": "โน้ตบุ๊ก", "microwave": "ไมโครเวฟ",
-      "sports ball": "ลูกบอล", "scissors": "กรรไกร", "backpack": "กระเป๋า",
-      "teddy bear": "ตุ๊กตา", "pen": "ปากกา", "pencil": "ดินสอ", "eraser": "ยางลบ",
-      "headphones": "หูฟัง", "box": "กล่อง"
+      "chair": "เก้าอี้",
+      "couch": "โซฟา",
+      "bed": "เตียง",
+      "dining table": "โต๊ะ",
+      "tv": "ทีวี",
+      "cell phone": "โทรศัพท์",
+      "book": "หนังสือ",
+      "bottle": "ขวดน้ำ",
+      "cup": "ถ้วย",
+      "bowl": "ชาม",
+      "remote": "รีโมท",
+      "mouse": "เมาส์",
+      "keyboard": "คีย์บอร์ด",
+      "laptop": "โน้ตบุ๊ก",
+      "microwave": "ไมโครเวฟ",
+      "sports ball": "ลูกบอล",
+      "scissors": "กรรไกร",
+      "backpack": "กระเป๋า",
+      "teddy bear": "ตุ๊กตา",
+      "pen": "ปากกา",
+      "pencil": "ดินสอ",
+      "eraser": "ยางลบ",
+      "headphones": "หูฟัง",
+      "box": "กล่อง"
     };
 
     async function listCameras() {
@@ -186,7 +101,7 @@
         videoDevices.forEach(device => {
           const option = document.createElement('option');
           option.value = device.deviceId;
-          option.text = device.label || กล้อง ${cameraSelect.length + 1};
+          option.text = device.label || `กล้อง ${cameraSelect.length + 1}`;
           cameraSelect.appendChild(option);
         });
         if(videoDevices.length > 0) {
@@ -210,7 +125,7 @@
         };
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           video.onloadedmetadata = () => resolve();
         });
       } catch (e) {
@@ -220,7 +135,7 @@
     }
 
     async function unlockAudio() {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         const utter = new SpeechSynthesisUtterance('');
         utter.volume = 0;
         utter.lang = "th-TH";
@@ -246,6 +161,7 @@
 
     async function detectFrame() {
       if (!detecting) return;
+
       try {
         if (video.videoWidth === 0 || video.videoHeight === 0) {
           requestAnimationFrame(detectFrame);
@@ -258,7 +174,7 @@
           for (const prediction of predictions) {
             if (labelDict[prediction.class]) {
               const thaiName = labelDict[prediction.class];
-              label.textContent = พบวัตถุ: ${thaiName};
+              label.textContent = `พบวัตถุ: ${thaiName}`;
               speak(thaiName);
               found = true;
               break;
@@ -273,6 +189,7 @@
       } catch (e) {
         message.textContent = "เกิดข้อผิดพลาดในการตรวจจับ: " + e.message;
       }
+
       requestAnimationFrame(detectFrame);
     }
 
@@ -281,10 +198,13 @@
       try {
         await setupCamera(deviceId);
         video.style.display = 'block';
-        catImage.style.display = 'block';
 
         const trackLabel = stream.getVideoTracks()[0].label.toLowerCase();
-        video.style.transform = trackLabel.includes('front') ? 'scaleX(-1)' : 'none';
+        if(trackLabel.includes('front') || trackLabel.includes('user')) {
+          video.style.transform = 'scaleX(-1)';
+        } else {
+          video.style.transform = 'none';
+        }
 
         if (!model) {
           label.textContent = "กำลังโหลดโมเดล...";
@@ -295,9 +215,9 @@
         detecting = true;
         detectFrame();
         isCameraOn = true;
-        toggleCamBtn.textContent = "📷 ปิดกล้อง";
-        toggleDetectBtn.textContent = "🛑 หยุดตรวจจับ";
-        muteBtn.textContent = isMuted ? '🔈 เปิดเสียงพูด' : '🔇 ปิดเสียงพูด';
+        toggleCamBtn.textContent = "ปิดกล้อง";
+        toggleDetectBtn.textContent = "หยุดตรวจจับ";
+        muteBtn.textContent = isMuted ? 'เปิดเสียงพูด' : 'ปิดเสียงพูด';
       } catch (e) {
         console.error(e);
       }
@@ -312,26 +232,28 @@
       }
       video.srcObject = null;
       video.style.display = 'none';
-      catImage.style.display = 'none';
       isCameraOn = false;
-      toggleCamBtn.textContent = "📷 เปิดกล้อง";
+      toggleCamBtn.textContent = "เปิดกล้อง";
     }
 
     toggleCamBtn.addEventListener('click', () => {
-      if (isCameraOn) stopCameraAndDetect();
-      else startCameraAndDetect(currentDeviceId);
+      if (isCameraOn) {
+        stopCameraAndDetect();
+      } else {
+        startCameraAndDetect(currentDeviceId);
+      }
     });
 
     toggleDetectBtn.addEventListener('click', () => {
       detecting = !detecting;
-      toggleDetectBtn.textContent = detecting ? '🛑 หยุดตรวจจับ' : '▶️ เริ่มตรวจจับ';
-      if (detecting) detectFrame();
+      toggleDetectBtn.textContent = detecting ? 'หยุดตรวจจับ' : 'เริ่มตรวจจับ';
+      if(detecting) detectFrame();
       else label.textContent = 'หยุดตรวจจับแล้ว';
     });
 
     muteBtn.addEventListener('click', () => {
       isMuted = !isMuted;
-      muteBtn.textContent = isMuted ? '🔈 เปิดเสียงพูด' : '🔇 ปิดเสียงพูด';
+      muteBtn.textContent = isMuted ? 'เปิดเสียงพูด' : 'ปิดเสียงพูด';
     });
 
     volumeSlider.addEventListener('input', () => {
@@ -342,12 +264,16 @@
 
     cameraSelect.addEventListener('change', () => {
       currentDeviceId = cameraSelect.value;
-      if (isCameraOn) startCameraAndDetect(currentDeviceId);
+      if(isCameraOn) {
+        startCameraAndDetect(currentDeviceId);
+      }
     });
 
     startBtn.addEventListener('click', async () => {
       startScreen.style.display = 'none';
       controls.style.display = 'block';
+      message.textContent = '';
+
       try {
         await unlockAudio();
         await listCameras();
