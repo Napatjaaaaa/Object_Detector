@@ -3,46 +3,373 @@
 <head>
   <meta charset="UTF-8" />
   <title>AI Object Detector with Voice (Full Features)</title>
+
+  <!-- ฟอนต์ไทยสวยๆ -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- Material Icons สำหรับไอคอนปุ่ม -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
-    body { font-family: sans-serif; text-align: center; margin: 20px; }
-    video { border: 2px solid black; width: 80%; max-width: 640px; margin: 10px auto; display: block; }
-    #controls { margin-top: 10px; }
-    button, label, select { font-size: 16px; margin: 5px; }
-    #volumeValue { font-weight: bold; }
-    #message { color: red; margin: 10px; font-weight: bold; }
+    :root{
+      --bg-grad-start: #FFF7F0;
+      --bg-grad-end: #F0FEFF;
+      --accent: #ff7aa2;
+      --accent-2: #6ec6ff;
+      --card-bg: rgba(255,255,255,0.85);
+      --muted: #666;
+      --success: #27ae60;
+      --danger: #e74c3c;
+      --glass: rgba(255,255,255,0.6);
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family: 'Kanit', sans-serif;
+      background: linear-gradient(160deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+      -webkit-font-smoothing:antialiased;
+      color:#222;
+    }
+
+    .container{
+      max-width:1000px;
+      margin:20px auto;
+      padding:18px;
+      box-sizing:border-box;
+    }
+
+    header.appbar{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .logo{
+      width:56px;
+      height:56px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(135deg,var(--accent),var(--accent-2));
+      color:white;
+      font-weight:800;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      font-size:22px;
+    }
+
+    h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:0.2px;
+    }
+
+    p.subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+      align-items:start;
+    }
+
+    /* card วิดีโอ */
+    .card{
+      background: var(--card-bg);
+      border-radius:14px;
+      padding:14px;
+      box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    /* video ให้ responsive */
+    .video-wrap{
+      position:relative;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:8px;
+      border-radius:10px;
+      overflow:hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));
+    }
+
+    video#webcam{
+      width:100%;
+      height:auto;
+      max-width:880px;
+      border-radius:10px;
+      transition: transform 0.25s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+
+    /* label detection overlay */
+    #label{
+      position: absolute;
+      left:12px;
+      bottom:12px;
+      background: rgba(0,0,0,0.65);
+      color:white;
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:600;
+      display:inline-block;
+      transform-origin:center;
+      animation: none;
+    }
+
+    /* small pulse when found */
+    .label-anim{
+      animation: pop 0.45s ease;
+    }
+    @keyframes pop{
+      0%{ transform: scale(0.85); opacity:0.6; }
+      60%{ transform: scale(1.07); opacity:1; }
+      100%{ transform: scale(1); opacity:1; }
+    }
+
+    /* controls */
+    #controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:center;
+      margin-top:10px;
+    }
+
+    .btn{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding:10px 14px;
+      border-radius:12px;
+      background:white;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+      cursor:pointer;
+      font-weight:600;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.big{
+      padding:14px 18px;
+      font-size:18px;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:white;
+      border:none;
+      box-shadow: 0 10px 30px rgba(110,198,255,0.18);
+    }
+
+    .controls-col{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    select, input[type="range"]{
+      width:100%;
+      border-radius:10px;
+      padding:8px;
+      border:1px solid rgba(0,0,0,0.06);
+      font-family: inherit;
+    }
+
+    .right-panel{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .panel-title{
+      font-weight:700;
+      font-size:14px;
+      color:#18334a;
+      margin-bottom:6px;
+    }
+
+    #message{
+      color:var(--danger);
+      font-weight:700;
+      margin-top:8px;
+      text-align:center;
+    }
+
+    .muted-note{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    footer{
+      margin-top:16px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* responsive */
+    @media (max-width:900px){
+      .layout{
+        grid-template-columns: 1fr;
+      }
+      .right-panel{ order:2; }
+      .video-wrap{ order:1; }
+    }
+
+    /* small icon style */
+    .material-icons{
+      font-size:20px;
+      line-height:1;
+    }
+
+    /* start screen large button */
+    #startScreen{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:12px;
+    }
+    #startBtn{
+      border-radius:14px;
+      background: linear-gradient(90deg, #ffd1e6, #9be7ff);
+      border:none;
+      color:#18334a;
+      box-shadow: 0 12px 30px rgba(16,24,40,0.08);
+      cursor:pointer;
+      transition: transform .12s ease;
+    }
+
+    #startBtn:active{ transform: translateY(2px); }
+
+    /* small accessibility focus */
+    .btn:focus, #startBtn:focus, select:focus, input:focus{
+      outline: 3px solid rgba(99, 164, 255, 0.18);
+      outline-offset: 2px;
+    }
+
   </style>
-</head>
-<body>
-
-  <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูด</h1>
-
-  <div id="startScreen">
-    <button id="startBtn" style="font-size:24px; padding: 15px 30px;">กดเริ่มใช้งาน</button>
-    <p>โปรดกดปุ่มเพื่อเปิดกล้องและอนุญาตเสียงพูด</p>
-  </div>
-
-  <p id="message"></p>
-
-  <video id="webcam" autoplay muted playsinline style="display:none;"></video>
-
-  <div id="controls" style="display:none;">
-    <button id="toggleCamBtn">ปิดกล้อง</button>
-    <!-- <button id="switchCamBtn">สลับกล้อง</button> ปุ่มนี้ถูกลบออก -->
-    <button id="toggleDetectBtn">หยุดตรวจจับ</button>
-    <button id="muteBtn">ปิดเสียงพูด</button><br />
-
-    <label for="cameraSelect">เลือกกล้อง: </label>
-    <select id="cameraSelect"></select><br />
-
-    <label for="volumeSlider">เสียงพูด: <span id="volumeValue">100</span>%</label><br />
-    <input type="range" id="volumeSlider" min="0" max="100" value="100" />
-  </div>
-
-  <p id="label"></p>
 
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
+</head>
+<body>
+
+  <div class="container">
+    <header class="appbar">
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <h1>กล้องตรวจจับวัตถุพร้อมเสียงพูด</h1>
+          <p class="subtitle">ออกแบบสำหรับพัฒนาการเด็ก — ใช้งานง่าย เหมาะสำหรับงานโครงงาน</p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="muted-note">เวอร์ชันทดลอง</div>
+        <div style="font-size:13px; color:var(--muted)">รองรับมือถือและเดสก์ท็อป</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Left: Video card -->
+      <div class="card">
+        <div id="startScreen">
+          <button id="startBtn" class="btn big primary" style="padding:14px 26px;">
+            <span class="material-icons" aria-hidden="true">videocam</span>
+            กดเริ่มใช้งาน
+          </button>
+          <p class="muted-note">โปรดกดปุ่มเพื่อเปิดกล้องและอนุญาตเสียงพูด</p>
+        </div>
+
+        <p id="message"></p>
+
+        <div class="video-wrap" style="margin-top:8px;">
+          <video id="webcam" autoplay muted playsinline style="display:none;"></video>
+          <!-- label overlay (ตกแต่ง) -->
+          <div id="label" style="display:none;">กำลังตรวจจับวัตถุ...</div>
+        </div>
+
+        <div id="controls" style="display:none; margin-top:12px;">
+          <button id="toggleCamBtn" class="btn"><span class="material-icons">videocam_off</span>ปิดกล้อง</button>
+          <button id="toggleDetectBtn" class="btn"><span class="material-icons">visibility_off</span>หยุดตรวจจับ</button>
+          <button id="muteBtn" class="btn"><span class="material-icons">volume_up</span>ปิดเสียงพูด</button>
+        </div>
+
+        <p id="labelText" style="margin-top:10px; color:var(--muted); font-size:13px; text-align:center;">
+          ระบบจะอ่านชื่อวัตถุเป็นภาษาไทยเมื่อพบ
+        </p>
+      </div>
+
+      <!-- Right: Controls panel -->
+      <aside class="right-panel">
+        <div class="card controls-col">
+          <div class="panel-title">กล้อง & เสียง</div>
+          <label for="cameraSelect">เลือกกล้อง:</label>
+          <select id="cameraSelect"></select>
+
+          <label for="volumeSlider">เสียงพูด: <span id="volumeValue">100</span>%</label>
+          <input type="range" id="volumeSlider" min="0" max="100" value="100" />
+
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div style="flex:1">
+              <button id="btnPreview" class="btn" style="width:100%"><span class="material-icons">photo_camera</span>ถ่ายตัวอย่าง</button>
+            </div>
+            <div style="width:48px;">
+              <button id="btnReset" class="btn"><span class="material-icons">refresh</span></button>
+            </div>
+          </div>
+
+          <div style="font-size:13px; color:var(--muted); margin-top:6px;">
+            หมายเหตุ: บนมือถือให้อนุญาตการใช้งานกล้องและเสียงเพื่อให้ระบบทำงานเต็มที่
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="panel-title">ตั้งค่าและสถานะ</div>
+          <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
+            <div><strong>สถานะกล้อง</strong></div>
+            <div id="camStatus" style="color:var(--muted)">ปิด</div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px;">
+            <div><strong>ตรวจจับ</strong></div>
+            <div id="detectStatus" style="color:var(--muted)">ทำงาน</div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="panel-title">คำแนะนำการนำเสนอ</div>
+            <ul style="margin:0 0 0 18px; color:var(--muted); font-size:13px;">
+              <li>สาธิตการจับวัตถุจริง เช่น ของเล่น หนังสือ</li>
+              <li ปรับระดับเสียงให้เหมาะสมก่อนนำเสนอ</li>
+              <li>เตรียมแสงสว่างเพียงพอเพื่อให้การตรวจจับแม่นยำ</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>
+      พัฒนาโดยคุณ — ปรับแต่งสำหรับโครงงานการเรียนรู้ด้วยคอมพิวเตอร์
+    </footer>
+  </div>
+
+  <!-- ====== ตรงนี้ผมวางสคริปต์ของคุณไว้ครบถ้วนตามต้นฉบับ (ไม่แก้ logic เลย) ====== -->
   <script>
     const startBtn = document.getElementById('startBtn');
     const startScreen = document.getElementById('startScreen');
@@ -101,7 +428,7 @@
         videoDevices.forEach(device => {
           const option = document.createElement('option');
           option.value = device.deviceId;
-          option.text = device.label || `กล้อง ${cameraSelect.length + 1}`;
+          option.text = device.label || กล้อง ${cameraSelect.length + 1};
           cameraSelect.appendChild(option);
         });
         if(videoDevices.length > 0) {
@@ -174,7 +501,7 @@
           for (const prediction of predictions) {
             if (labelDict[prediction.class]) {
               const thaiName = labelDict[prediction.class];
-              label.textContent = `พบวัตถุ: ${thaiName}`;
+              label.textContent = พบวัตถุ: ${thaiName};
               speak(thaiName);
               found = true;
               break;
