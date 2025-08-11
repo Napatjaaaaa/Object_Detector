@@ -195,6 +195,8 @@
           <button id="toggleCamBtn" class="btn"><span class="material-icons">videocam_off</span><span id="toggleCamText">ปิดกล้อง</span></button>
           <button id="toggleDetectBtn" class="btn"><span class="material-icons">visibility_off</span><span id="toggleDetectText">หยุดตรวจจับ</span></button>
           <button id="muteBtn" class="btn"><span class="material-icons">volume_up</span><span id="muteText">ปิดเสียงพูด</span></button>
+          <!-- ปุ่มรีเฟรชเพิ่มใหม่ -->
+          <button id="btnRefresh" class="btn"><span class="material-icons">refresh</span>รีเฟรช</button>
         </div>
 
         <p id="labelText">ระบบจะอ่านชื่อวัตถุเป็นภาษาไทยเมื่อพบ</p>
@@ -238,6 +240,8 @@
           <div style="margin-top:10px;">
             <div class="panel-title">คำแนะนำการนำเสนอ</div>
             <ul style="margin:0 0 0 18px; color:var(--muted); font-size:13px;">
+              <li>ก่อนเริ่มใช้งานให้กดปุ่ม "กดเริ่มใช้งาน" และอนุญาตการเข้าถึงกล้องและเสียง</li>
+              <li>สำหรับคอมพิวเตอร์หรือุปกรณ์ที่สามรถรองรับกล้องได้หลายประเภทเมื่อกดเริ่มใช้งานและกดอนุญาติในการเข้าถึงต่างๆแล้วให้กดปุ่มรีหน้าเว็บไซต์(Refresh the website page)ก่อนเพื่อให้สามารถใช้งานในส่วนของตัว เลือกกล้องได้</li>
               <li>สาธิตการจับวัตถุจริง เช่น ของเล่น หนังสือ</li>
               <li>ปรับระดับเสียงให้เหมาะสมก่อนนำเสนอ</li>
               <li>เตรียมแสงสว่างเพียงพอเพื่อให้การตรวจจับแม่นยำ</li>
@@ -274,6 +278,7 @@
     const detectStatus = document.getElementById('detectStatus');
     const btnPreview = document.getElementById('btnPreview');
     const btnReset = document.getElementById('btnReset');
+    const btnRefresh = document.getElementById('btnRefresh');  // เพิ่มปุ่มรีเฟรชที่นี่
 
     // State
     let model;
@@ -352,225 +357,4 @@
           video.onloadedmetadata = () => resolve();
         });
       } catch (e) {
-        camStatus.textContent = 'ปิด';
-        message.textContent = 'ไม่สามารถเปิดกล้องได้: ' + e.message;
-        throw e;
-      }
-    }
-
-    // Some browsers require a user gesture to enable speechSynthesis; we "unlock" with a silent utter
-    async function unlockAudio() {
-      return new Promise((resolve) => {
-        try {
-          const utter = new SpeechSynthesisUtterance('');
-          utter.volume = 0;
-          utter.lang = "th-TH";
-          utter.onend = () => resolve();
-          speechSynthesis.speak(utter);
-        } catch (e) {
-          // some browsers might throw if TTS not available — still resolve
-          resolve();
-        }
-      });
-    }
-
-    function speak(text) {
-      if (isMuted) return;
-      const now = Date.now();
-      if (!lastSpokenTimes[text] || (now - lastSpokenTimes[text] > 3000)) {
-        if (speechSynthesis.speaking) {
-          speechSynthesis.cancel();
-        }
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "th-TH";
-        utter.volume = speechVolume;
-        speechSynthesis.speak(utter);
-        lastSpokenTimes[text] = now;
-      }
-    }
-
-    async function detectFrame() {
-      if (!detecting) {
-        detectStatus.textContent = 'หยุด';
-        return;
-      }
-      detectStatus.textContent = 'ทำงาน';
-
-      try {
-        if (video.videoWidth === 0 || video.videoHeight === 0) {
-          requestAnimationFrame(detectFrame);
-          return;
-        }
-
-        const predictions = await model.detect(video);
-        if (predictions.length > 0) {
-          let found = false;
-          for (const prediction of predictions) {
-            if (labelDict[prediction.class]) {
-              const thaiName = labelDict[prediction.class];
-              label.style.display = 'inline-block';
-              label.textContent = `พบวัตถุ: ${thaiName}`;
-              // add pop animation
-              label.classList.remove('label-anim');
-              // force reflow to restart animation
-              void label.offsetWidth;
-              label.classList.add('label-anim');
-
-              speak(thaiName);
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            label.style.display = 'inline-block';
-            label.textContent = "พบวัตถุที่ไม่มีคำแปลภาษาไทย (ไม่พูด)";
-          }
-        } else {
-          label.style.display = 'inline-block';
-          label.textContent = "กำลังตรวจจับวัตถุ...";
-        }
-      } catch (e) {
-        message.textContent = "เกิดข้อผิดพลาดในการตรวจจับ: " + e.message;
-      }
-
-      requestAnimationFrame(detectFrame);
-    }
-
-    async function startCameraAndDetect(deviceId = null) {
-      message.textContent = '';
-      try {
-        await setupCamera(deviceId);
-        video.style.display = 'block';
-
-        const trackLabel = (stream.getVideoTracks()[0].label || '').toLowerCase();
-        if (trackLabel.includes('front') || trackLabel.includes('user')) {
-          video.style.transform = 'scaleX(-1)';
-        } else {
-          video.style.transform = 'none';
-        }
-
-        if (!model) {
-          label.style.display = 'inline-block';
-          label.textContent = "กำลังโหลดโมเดล...";
-          model = await cocoSsd.load();
-        }
-
-        label.textContent = "พร้อมตรวจจับวัตถุ!";
-        detecting = true;
-        isCameraOn = true;
-        toggleCamText.textContent = "ปิดกล้อง";
-        toggleDetectText.textContent = "หยุดตรวจจับ";
-        muteText.textContent = isMuted ? 'เปิดเสียงพูด' : 'ปิดเสียงพูด';
-        detectFrame();
-      } catch (e) {
-        console.error(e);
-        // message already set in setupCamera, avoid overwriting
-      }
-    }
-
-    function stopCameraAndDetect() {
-      detecting = false;
-      label.style.display = 'none';
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
-      video.srcObject = null;
-      video.style.display = 'none';
-      isCameraOn = false;
-      toggleCamText.textContent = "เปิดกล้อง";
-      camStatus.textContent = 'ปิด';
-    }
-
-    // Events
-    toggleCamBtn.addEventListener('click', () => {
-      if (isCameraOn) {
-        stopCameraAndDetect();
-      } else {
-        startCameraAndDetect(currentDeviceId);
-      }
-    });
-
-    toggleDetectBtn.addEventListener('click', () => {
-      detecting = !detecting;
-      toggleDetectText.textContent = detecting ? 'หยุดตรวจจับ' : 'เริ่มตรวจจับ';
-      if (detecting) detectFrame();
-      else {
-        label.textContent = 'หยุดตรวจจับแล้ว';
-        detectStatus.textContent = 'หยุด';
-      }
-    });
-
-    muteBtn.addEventListener('click', () => {
-      isMuted = !isMuted;
-      muteText.textContent = isMuted ? 'เปิดเสียงพูด' : 'ปิดเสียงพูด';
-    });
-
-    volumeSlider.addEventListener('input', () => {
-      const val = volumeSlider.value;
-      volumeValue.textContent = val;
-      speechVolume = val / 100;
-    });
-
-    cameraSelect.addEventListener('change', () => {
-      currentDeviceId = cameraSelect.value;
-      if (isCameraOn) {
-        // restart with the selected camera
-        startCameraAndDetect(currentDeviceId);
-      }
-    });
-
-    btnPreview.addEventListener('click', () => {
-      // take a simple snapshot and open in new tab (preview)
-      if (!isCameraOn || !stream) {
-        message.textContent = 'กล้องยังไม่เปิด';
-        setTimeout(()=> message.textContent = '', 3000);
-        return;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const data = canvas.toDataURL('image/png');
-      const w = window.open('');
-      w.document.write(`<img src="${data}" style="max-width:100%;">`);
-    });
-
-    btnReset.addEventListener('click', async () => {
-      // reset UI & state
-      stopCameraAndDetect();
-      label.style.display = 'none';
-      message.textContent = '';
-      isMuted = false;
-      muteText.textContent = 'ปิดเสียงพูด';
-      volumeSlider.value = 100;
-      volumeValue.textContent = 100;
-      speechVolume = 1.0;
-      try {
-        // try to re-enumerate devices
-        await listCameras();
-      } catch {}
-    });
-
-    startBtn.addEventListener('click', async () => {
-      startScreen.style.display = 'none';
-      controls.style.display = 'flex';
-      message.textContent = '';
-
-      try {
-        await unlockAudio();         // unlock speech
-        await listCameras();         // get camera list (after permission allowed labels will appear)
-        await startCameraAndDetect(currentDeviceId);
-      } catch (e) {
-        message.textContent = 'ไม่สามารถเริ่มใช้งานได้: ' + (e && e.message ? e.message : e);
-      }
-    });
-
-    // initial enumeration (labels often empty until permission granted, but populate fallback)
-    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-      listCameras().catch(()=>{/*ignore*/});
-    }
-  </script>
-</body>
-</html>
+        camStatus.textContent
