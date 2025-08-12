@@ -133,9 +133,26 @@
     footer{ margin-top:16px; text-align:center; color:var(--muted); font-size:13px; }
 
     @media (max-width:900px){
-      .layout{ grid-template-columns: 1fr; }
-      .right-panel{ order:2; }
-      .video-wrap{ order:1; }
+  .layout {
+    grid-template-columns: 1fr;
+    row-gap: 24px; /* เพิ่มช่องว่างระหว่าง video กับ controls panel */
+  }
+  .right-panel {
+    order: 2;
+    padding: 0 10px; /* เว้นขอบซ้ายขวาเล็กน้อย */
+  }
+  .video-wrap {
+    order: 1;
+    padding: 8px 10px; /* เว้นขอบซ้ายขวาให้ดูไม่ติดขอบ */
+  }
+  .card {
+    padding: 16px 14px; /* เพิ่ม padding ในการ์ดให้ดูโปร่ง */
+  }
+  #labelText {
+    padding: 0 10px; /* เว้นขอบข้อความใต้ video */
+  }
+}
+
     }
 
     .material-icons{ font-size:20px; line-height:1; }
@@ -581,6 +598,7 @@
   </script>
 </body>
 </html>
+
 
 
 
