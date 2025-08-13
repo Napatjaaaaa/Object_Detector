@@ -213,7 +213,12 @@
 
           <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
             <div style="flex:1">
-              <button id="btnPreview" class="btn" style="width:100%"><span class="material-icons">photo_camera</span>ถ่ายตัวอย่าง</button>
+              <!-- ปุ่มใหม่: ประเมินผลและคำแนะ -->
+              <a id="btnSurvey" class="btn" style="width:100%; text-decoration:none; justify-content:center;"
+                 href="https://docs.google.com/forms/d/e/1FAIpQLScCIV2OwYBcNOznDynH_DthABwO_5OxiM4Dh78cMApQI1lfGg/viewform?usp=header"
+                 target="_blank" rel="noopener">
+                <span class="material-icons">rate_review</span>ประเมินผลและคำแนะ
+              </a>
             </div>
             <div style="width:48px;">
               <button id="btnReset" class="btn"><span class="material-icons">refresh</span></button>
@@ -240,11 +245,11 @@
             <div class="panel-title">คำแนะนำการนำเสนอ</div>
             <ul style="margin:0 0 0 18px; color:var(--muted); font-size:13px;">
                <li>ก่อนเริ่มใช้งานให้กดปุ่ม "กดเริ่มใช้งาน" และอนุญาตการเข้าถึงกล้องและเสียง</li>
-              <li>สำหรับคอมพิวเตอร์หรือุปกรณ์ที่สามรถรองรับกล้องได้หลายประเภทเมื่อกดเริ่มใช้งานและกดอนุญาติในการเข้าถึงต่างๆแล้วให้กดปุ่มรีหน้าเว็บไซต์(Refresh the website page)ก่อนเพื่อให้สามารถใช้งานในส่วนของตัว เลือกกล้องได้</li>
+              <li>สำหรับคอมพิวเตอร์หรือุปกรณ์ที่สามารถรองรับกล้องได้หลายประเภทเมื่อกดเริ่มใช้งานและกดอนุญาติในการเข้าถึงต่างๆแล้วให้กดปุ่มรีหน้าเว็บไซต์(Refresh the website page)ก่อนเพื่อให้สามารถใช้งานในส่วนของตัว เลือกกล้องได้</li>
               <li>สาธิตการจับวัตถุจริง เช่น โต๊ะ ขวดน้ำ</li>
               <li>ปรับระดับเสียงให้เหมาะสมก่อนใช้งาน</li>
               <li>เตรียมแสงสว่างเพียงพอเพื่อให้การตรวจจับแม่นยำ</li>
-               <li>นำวัตุเข้ามาใกล้ๆบริเวณที่ตรวจจับเพื่อให้สามารถตรวจจับได้อย่างแม่นยำ</li>
+               <li>นำวัตถุเข้ามาใกล้ๆบริเวณที่ตรวจจับเพื่อให้สามารถตรวจจับได้อย่างแม่นยำ</li>
             </ul>
           </div>
         </div>
@@ -279,8 +284,8 @@
     const message = document.getElementById('message');
     const camStatus = document.getElementById('camStatus');
     const detectStatus = document.getElementById('detectStatus');
-    const btnPreview = document.getElementById('btnPreview');
     const btnReset = document.getElementById('btnReset');
+    // NOTE: ปุ่มถ่ายภาพตัวอย่าง (btnPreview) ถูกถอดออกและแทนที่ด้วยลิงก์ไปฟอร์ม
 
     // State
     let model;
@@ -527,23 +532,7 @@
       }
     });
 
-    btnPreview.addEventListener('click', () => {
-      // take a simple snapshot and open in new tab (preview)
-      if (!isCameraOn || !stream) {
-        message.textContent = 'กล้องยังไม่เปิด';
-        setTimeout(()=> message.textContent = '', 3000);
-        return;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const data = canvas.toDataURL('image/png');
-      const w = window.open('');
-      w.document.write(`<img src="${data}" style="max-width:100%;">`);
-    });
-
+    // ปุ่มรีเซ็ตยังคงเหมือนเดิม
     btnReset.addEventListener('click', async () => {
       // reset UI & state
       stopCameraAndDetect();
@@ -581,12 +570,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
