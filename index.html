@@ -245,7 +245,7 @@
               <li>สาธิตการจับวัตถุจริง เช่น โต๊ะ ขวดน้ำ</li>
               <li>ปรับระดับเสียงให้เหมาะสมก่อนใช้งาน</li>
               <li>เตรียมแสงสว่างเพียงพอเพื่อให้การตรวจจับแม่นยำ</li>
-               <li>นำวัตถุเข้ามาใกล้ๆบริเวณที่ตรวจจับเพื่อให้สามารถตรวจจับได้อย่างแม่นยำควย</li>
+               <li>นำวัตถุเข้ามาใกล้ๆบริเวณที่ตรวจจับเพื่อให้สามารถตรวจจับได้อย่างแม่นยำควยหี</li>
             </ul>
           </div>
         </div>
@@ -282,6 +282,9 @@
     const detectStatus = document.getElementById('detectStatus');
     const btnPreview = document.getElementById('btnPreview');
     const btnReset = document.getElementById('btnReset');
+
+    // ===== NEW: detect mobile once =====
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
     // State
     let model;
@@ -324,6 +327,18 @@
     // เพิ่มพารามิเตอร์ preferDeviceId เพื่อไม่ให้เปลี่ยน selection ถ้ามีการกำหนดไว้
     async function listCameras(preferDeviceId = null) {
       try {
+        // ===== NEW: บนมือถือ บังคับใช้กล้องหลัง และปิด dropdown =====
+        if (isMobile) {
+          cameraSelect.innerHTML = '';
+          const option = document.createElement('option');
+          option.value = '';
+          option.text = 'กล้องหลัง (บังคับใช้บนมือถือ)';
+          cameraSelect.appendChild(option);
+          cameraSelect.disabled = true; // ปิดการเลือกบนมือถือ
+          currentDeviceId = null;
+          return; // ไม่ enumerate จริง
+        }
+
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
         cameraSelect.innerHTML = '';
@@ -334,7 +349,6 @@
           cameraSelect.appendChild(option);
         });
         if (videoDevices.length > 0) {
-          // ถ้ามี preferDeviceId และมีในรายการ ให้เลือกอันนั้น
           if (preferDeviceId && videoDevices.some(d => d.deviceId === preferDeviceId)) {
             currentDeviceId = preferDeviceId;
             cameraSelect.value = preferDeviceId;
@@ -354,13 +368,35 @@
           stream.getTracks().forEach(track => track.stop());
           stream = null;
         }
-        const constraints = {
-          video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
-          audio: false
-        };
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        let constraints;
+
+        if (isMobile) {
+          // ===== NEW: บนมือถือบังคับกล้องหลัง =====
+          constraints = {
+            video: { facingMode: { exact: "environment" } },
+            audio: false
+          };
+          try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+          } catch (errExact) {
+            // บางเบราว์เซอร์/เครื่องไม่รองรับ exact -> ลอง ideal เป็นแผนสำรอง
+            constraints = {
+              video: { facingMode: { ideal: "environment" } },
+              audio: false
+            };
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+          }
+        } else {
+          // เดสก์ท็อป: ตามเดิม (เลือกได้หลายกล้อง)
+          constraints = {
+            video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
+            audio: false
+          };
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        }
+
         video.srcObject = stream;
-        // show camera status
         camStatus.textContent = 'เปิด';
         return new Promise((resolve) => {
           video.onloadedmetadata = () => resolve();
@@ -382,7 +418,6 @@
           utter.onend = () => resolve();
           speechSynthesis.speak(utter);
         } catch (e) {
-          // some browsers might throw if TTS not available — still resolve
           resolve();
         }
       });
@@ -424,9 +459,7 @@
               const thaiName = labelDict[prediction.class];
               label.style.display = 'inline-block';
               label.textContent = `พบวัตถุ: ${thaiName}`;
-              // add pop animation
               label.classList.remove('label-anim');
-              // force reflow to restart animation
               void label.offsetWidth;
               label.classList.add('label-anim');
 
@@ -453,11 +486,11 @@
     async function startCameraAndDetect(deviceId = null) {
       message.textContent = '';
       try {
-        await setupCamera(deviceId);
+        // ===== NEW: บนมือถือจะไม่ส่ง deviceId (บังคับกล้องหลังผ่าน facingMode) =====
+        await setupCamera(isMobile ? null : deviceId);
 
-        // *** สำคัญ: เรียก listCameras() หลังจาก getUserMedia สำเร็จเท่านั้น ***
-        // ส่ง deviceId ที่เริ่มใช้งานเป็น preferDeviceId เพื่อให้ dropdown แสดงชื่อจริงและเลือกตัวเดียวกัน
-        await listCameras(deviceId);
+        // เรียก listCameras หลังจาก getUserMedia สำเร็จ
+        await listCameras(isMobile ? null : deviceId);
 
         video.style.display = 'block';
 
@@ -483,7 +516,7 @@
         detectFrame();
       } catch (e) {
         console.error(e);
-        // message already set in setupCamera, avoid overwriting
+        // message already set in setupCamera
       }
     }
 
@@ -532,21 +565,21 @@
     });
 
     cameraSelect.addEventListener('change', () => {
+      // ===== NEW: เพิกเฉยบนมือถือ (บังคับกล้องหลัง) =====
+      if (isMobile) return;
       currentDeviceId = cameraSelect.value;
       if (isCameraOn) {
-        // restart with the selected camera
         startCameraAndDetect(currentDeviceId);
       }
     });
 
-    // เปลี่ยนการทำงานของปุ่ม: เปิดลิงก์ Google Form ในแท็บใหม่ (เป็น user gesture จึงไม่น่าถูกบล็อก)
+    // เปิดลิงก์ Google Form
     btnPreview.addEventListener('click', () => {
       const url = 'https://docs.google.com/forms/d/e/1FAIpQLScCIV2OwYBcNOznDynH_DthABwO_5OxiM4Dh78cMApQI1lfGg/viewform?usp=header';
       window.open(url, '_blank');
     });
 
     btnReset.addEventListener('click', async () => {
-      // reset UI & state
       stopCameraAndDetect();
       label.style.display = 'none';
       message.textContent = '';
@@ -556,7 +589,6 @@
       volumeValue.textContent = 100;
       speechVolume = 1.0;
       try {
-        // try to re-enumerate devices (เรียกหลังอนุญาตแล้วจะให้ label แสดง)
         await listCameras();
       } catch {}
     });
@@ -567,16 +599,14 @@
       message.textContent = '';
 
       try {
-        await unlockAudio();         // unlock speech
-        // ลบการเรียก listCameras() ที่นี่ตามที่ขอ — ให้เรียก AFTER getUserMedia (ดูใน startCameraAndDetect)
+        await unlockAudio();
         await startCameraAndDetect(currentDeviceId);
       } catch (e) {
         message.textContent = 'ไม่สามารถเริ่มใช้งานได้: ' + (e && e.message ? e.message : e);
       }
     });
 
-    // หมายเหตุ: ไม่เรียก listCameras() ตอนโหลดหน้าแล้ว (เพื่อหลีกเลี่ยง label ว่างก่อนอนุญาต)
-    // (เดิมมีการเรียก listCameras() ที่นี่ — ถูกลบ ตามคำขอ)
+    // หมายเหตุ: ไม่เรียก listCameras ตอนโหลดหน้า (ตามเดิม)
   </script>
 </body>
 </html>
