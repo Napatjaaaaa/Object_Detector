@@ -213,7 +213,8 @@
 
           <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
             <div style="flex:1">
-              <button id="btnPreview" class="btn" style="width:100%"><span class="material-icons">photo_camera</span>ถ่ายตัวอย่าง</button>
+              <!-- เปลี่ยนปุ่ม: ถ่ายตัวอย่าง -> ประเมินผลและคำแนะนำ (ขนาดเดิม) -->
+              <button id="btnEvaluate" class="btn" style="width:100%"><span class="material-icons">assignment</span>ประเมินผลและคำแนะนำ</button>
             </div>
             <div style="width:48px;">
               <button id="btnReset" class="btn"><span class="material-icons">refresh</span></button>
@@ -279,7 +280,7 @@
     const message = document.getElementById('message');
     const camStatus = document.getElementById('camStatus');
     const detectStatus = document.getElementById('detectStatus');
-    const btnPreview = document.getElementById('btnPreview');
+    const btnEvaluate = document.getElementById('btnEvaluate');
     const btnReset = document.getElementById('btnReset');
 
     // State
@@ -527,21 +528,9 @@
       }
     });
 
-    btnPreview.addEventListener('click', () => {
-      // take a simple snapshot and open in new tab (preview)
-      if (!isCameraOn || !stream) {
-        message.textContent = 'กล้องยังไม่เปิด';
-        setTimeout(()=> message.textContent = '', 3000);
-        return;
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const data = canvas.toDataURL('image/png');
-      const w = window.open('');
-      w.document.write(`<img src="${data}" style="max-width:100%;">`);
+    // ปุ่มประเมินผลและคำแนะนำ -> ไปยังลิงก์ฟอร์มที่กำหนด
+    btnEvaluate.addEventListener('click', () => {
+      window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLScCIV2OwYBcNOznDynH_DthABwO_5OxiM4Dh78cMApQI1lfGg/viewform?usp=header';
     });
 
     btnReset.addEventListener('click', async () => {
@@ -581,12 +570,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
