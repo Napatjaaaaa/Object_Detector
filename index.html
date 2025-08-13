@@ -96,7 +96,7 @@
       padding:8px 12px;
       border-radius:999px;
       font-weight:600;
-      display:none;
+      display:inline-block;
       transform-origin:center;
     }
 
@@ -165,6 +165,11 @@
           <p class="subtitle">ออกแบบสำหรับพัฒนาการเด็ก — ใช้งานง่าย เหมาะสำหรับงานโครงงาน</p>
         </div>
       </div>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="muted-note">เวอร์ชันกำลังพัฒนา</div>
+        <div style="font-size:13px; color:var(--muted)">รองรับมือถือ(ในบางรุ่น)และเดสก์ท็อป</div>
+      </div>
     </header>
 
     <div class="layout">
@@ -183,7 +188,7 @@
         <div class="video-wrap" style="margin-top:8px;">
           <video id="webcam" autoplay muted playsinline style="display:none;"></video>
           <!-- overlay label -->
-          <div id="label">กำลังตรวจจับวัตถุ...</div>
+          <div id="label" style="display:none;">กำลังตรวจจับวัตถุ...</div>
         </div>
 
         <div id="controls" style="display:none; margin-top:12px;">
@@ -207,6 +212,7 @@
 
           <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
             <div style="flex:1">
+              <!-- แก้ไขปุ่มจาก 'ถ่ายตัวอย่าง' เป็น 'ประเมินผลและคำแนะนำ' -->
               <button id="btnEvaluate" class="btn" style="width:100%">
                 <span class="material-icons">assignment</span>
                 ประเมินผลและคำแนะนำ
@@ -216,25 +222,48 @@
               <button id="btnReset" class="btn"><span class="material-icons">refresh</span></button>
             </div>
           </div>
+
+          <div style="font-size:13px; color:var(--muted); margin-top:6px;">
+            หมายเหตุ: บนมือถือให้อนุญาตการใช้งานกล้องและเสียงเพื่อให้ระบบทำงานเต็มที่
+          </div>
         </div>
 
         <div class="card">
-          <div class="panel-title">สถานะ</div>
-          <div style="display:flex; justify-content:space-between;"><div>สถานะกล้อง</div><div id="camStatus">ปิด</div></div>
-          <div style="display:flex; justify-content:space-between; margin-top:8px;"><div>ตรวจจับ</div><div id="detectStatus">ทำงาน</div></div>
+          <div class="panel-title">ตั้งค่าและสถานะ</div>
+          <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
+            <div><strong>สถานะกล้อง</strong></div>
+            <div id="camStatus" style="color:var(--muted)">ปิด</div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px;">
+            <div><strong>ตรวจจับ</strong></div>
+            <div id="detectStatus" style="color:var(--muted)">ทำงาน</div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="panel-title">คำแนะนำการนำเสนอ</div>
+            <ul style="margin:0 0 0 18px; color:var(--muted); font-size:13px;">
+              <li>ก่อนเริ่มใช้งานให้กดปุ่ม "กดเริ่มใช้งาน" และอนุญาตการเข้าถึงกล้องและเสียง</li>
+              <li>สำหรับคอมพิวเตอร์หรือุปกรณ์ที่สามรถรองรับกล้องได้หลายประเภทเมื่อกดเริ่มใช้งานและกดอนุญาติในการเข้าถึงต่างๆแล้วให้กดปุ่มรีหน้าเว็บไซต์(Refresh the website page)ก่อนเพื่อให้สามารถใช้งานในส่วนของตัว เลือกกล้องได้</li>
+              <li>สาธิตการจับวัตถุจริง เช่น โต๊ะ ขวดน้ำ</li>
+              <li>ปรับระดับเสียงให้เหมาะสมก่อนใช้งาน</li>
+              <li>เตรียมแสงสว่างเพียงพอเพื่อให้การตรวจจับแม่นยำ</li>
+              <li>นำวัตุเข้ามาใกล้ๆบริเวณที่ตรวจจับเพื่อให้สามารถตรวจจับได้อย่างแม่นยำ</li>
+            </ul>
+          </div>
         </div>
       </aside>
     </div>
 
-    <footer>
+    <footer style="margin-top:16px; text-align:center; color:var(--muted); font-size:14px; line-height:1.6; white-space:pre-line;">
       พัฒนาโดย กลุ่มผู้จัดทำ กล้องตรวจจับวัตถุและออกเสียงเพื่อพัฒนาการของเด็ก<br>
       โรงเรียนพรตพิทยพยัต<br>
-      นักเรียนชั้นมัธยมศึกษาปีที่ 6 ห้อง 5 แผนการเรียน เทคโนโลยีคอมพิวเตอร์ รุ่น 1 (พ.ศ.2566)
+      โดยนักเรียนชั้นมัธยมศึกษาปีที่ 6 ห้อง 5 แผนการเรียน เทคโนโลยีคอมพิวเตอร์ รุ่น 1 (พ.ศ.2566)
     </footer>
   </div>
 
-  <!-- ====== Script ====== -->
+  <!-- ====== Script (logic) ====== -->
   <script>
+    // Elements
     const startBtn = document.getElementById('startBtn');
     const startScreen = document.getElementById('startScreen');
     const video = document.getElementById('webcam');
@@ -253,8 +282,9 @@
     const camStatus = document.getElementById('camStatus');
     const detectStatus = document.getElementById('detectStatus');
     const btnReset = document.getElementById('btnReset');
-    const btnEvaluate = document.getElementById('btnEvaluate');
+    const btnEvaluate = document.getElementById('btnEvaluate'); // ปุ่มใหม่
 
+    // State
     let model;
     let stream = null;
     let isCameraOn = false;
@@ -291,10 +321,11 @@
       "box": "กล่อง"
     };
 
+    // list cameras (use after permission granted to show proper labels)
     async function listCameras() {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
         cameraSelect.innerHTML = '';
         videoDevices.forEach((device, idx) => {
           const option = document.createElement('option');
@@ -302,125 +333,117 @@
           option.text = device.label || `กล้อง ${idx + 1}`;
           cameraSelect.appendChild(option);
         });
-        if(videoDevices.length>0){
+        if (videoDevices.length > 0) {
           currentDeviceId = videoDevices[0].deviceId;
-          cameraSelect.value=currentDeviceId;
+          cameraSelect.value = currentDeviceId;
         }
-      } catch(e){
-        message.textContent='ไม่สามารถดึงรายชื่อกล้องได้: '+e.message;
+      } catch (e) {
+        message.textContent = 'ไม่สามารถดึงรายชื่อกล้องได้: ' + e.message;
       }
     }
 
-    async function setupCamera(deviceId=null){
-      try{
-        if(stream){
-          stream.getTracks().forEach(track=>track.stop());
-          stream=null;
+    async function setupCamera(deviceId = null) {
+      try {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
         }
         const constraints = {
-          video: deviceId ? {deviceId:{exact:deviceId}} : {facingMode:'environment'},
-          audio:false
+          video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
+          audio: false
         };
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
-        camStatus.textContent='เปิด';
-        isCameraOn=true;
-        return new Promise(resolve=>{video.onloadedmetadata=()=>{video.play(); resolve();}});
-      }catch(e){
-        message.textContent='ไม่สามารถเปิดกล้อง: '+e.message;
+        camStatus.textContent = 'เปิด';
+        return new Promise((resolve) => {
+          video.onloadedmetadata = () => { video.play(); resolve(); };
+        });
+      } catch (e) {
+        message.textContent = 'ไม่สามารถเปิดกล้อง: ' + e.message;
       }
     }
 
-    function speak(text){
-      if(isMuted) return;
-      const now=Date.now();
-      if(!lastSpokenTimes[text]||now-lastSpokenTimes[text]>3000){
-        if(speechSynthesis.speaking)speechSynthesis.cancel();
-        const utter=new SpeechSynthesisUtterance(text);
-        utter.lang='th-TH';
-        utter.volume=speechVolume;
-        speechSynthesis.speak(utter);
-        lastSpokenTimes[text]=now;
-      }
-    }
+    async function detectFrame() {
+      if (!model || !detecting) return;
+      model.detect(video).then(predictions => {
+        let highest = null;
+        if (predictions.length > 0) {
+          highest = predictions.reduce((prev, curr) => (prev.score > curr.score ? prev : curr));
+          const thaiLabel = labelDict[highest.class] || highest.class;
+          label.textContent = thaiLabel;
+          label.style.display = 'inline-block';
+          label.classList.add('label-anim');
 
-    async function detectFrame(){
-      if(!model||!detecting) return;
-      try{
-        if(video.videoWidth===0||video.videoHeight===0){
-          requestAnimationFrame(detectFrame);
-          return;
-        }
-        const predictions=await model.detect(video);
-        if(predictions.length>0){
-          let found=false;
-          for(const p of predictions){
-            if(labelDict[p.class]){
-              label.textContent=labelDict[p.class];
-              label.style.display='inline-block';
-              label.classList.add('label-anim');
-              speak(labelDict[p.class]);
-              found=true; break;
+          if (!isMuted) {
+            const now = Date.now();
+            if (!lastSpokenTimes[thaiLabel] || (now - lastSpokenTimes[thaiLabel]) > 3000) {
+              const utter = new SpeechSynthesisUtterance(thaiLabel);
+              utter.lang = 'th-TH';
+              utter.volume = speechVolume;
+              speechSynthesis.speak(utter);
+              lastSpokenTimes[thaiLabel] = now;
             }
           }
-          if(!found) label.style.display='none';
-        }else label.style.display='none';
-      }catch(e){
-        message.textContent='เกิดข้อผิดพลาดในการตรวจจับ: '+e.message;
-      }
-      requestAnimationFrame(detectFrame);
+        } else {
+          label.style.display = 'none';
+        }
+      }).finally(() => {
+        requestAnimationFrame(detectFrame);
+      });
     }
 
-    startBtn.addEventListener('click',async()=>{
-      startScreen.style.display='none';
-      controls.style.display='flex';
+    startBtn.addEventListener('click', async () => {
+      startScreen.style.display = 'none';
       await setupCamera();
+      video.style.display = 'block';
+      controls.style.display = 'flex';
       await listCameras();
-      if(!model) model=await cocoSsd.load();
+      model = await cocoSsd.load();
       detectFrame();
     });
 
-    toggleCamBtn.addEventListener('click',()=>{
-      if(isCameraOn){
-        stream.getTracks().forEach(track=>track.enabled=false);
-        toggleCamText.textContent='เปิดกล้อง';
-        camStatus.textContent='ปิด';
-      }else{
-        stream.getTracks().forEach(track=>track.enabled=true);
-        toggleCamText.textContent='ปิดกล้อง';
-        camStatus.textContent='เปิด';
+    toggleCamBtn.addEventListener('click', () => {
+      if (isCameraOn) {
+        video.pause();
+        stream.getTracks().forEach(track => track.enabled = false);
+        toggleCamText.textContent = 'เปิดกล้อง';
+        camStatus.textContent = 'ปิด';
+      } else {
+        video.play();
+        stream.getTracks().forEach(track => track.enabled = true);
+        toggleCamText.textContent = 'ปิดกล้อง';
+        camStatus.textContent = 'เปิด';
       }
-      isCameraOn=!isCameraOn;
+      isCameraOn = !isCameraOn;
     });
 
-    toggleDetectBtn.addEventListener('click',()=>{
-      detecting=!detecting;
-      toggleDetectText.textContent=detecting?'หยุดตรวจจับ':'เริ่มตรวจจับ';
-      detectStatus.textContent=detecting?'ทำงาน':'หยุด';
-      if(detecting) detectFrame();
+    toggleDetectBtn.addEventListener('click', () => {
+      detecting = !detecting;
+      toggleDetectText.textContent = detecting ? 'หยุดตรวจจับ' : 'เริ่มตรวจจับ';
+      detectStatus.textContent = detecting ? 'ทำงาน' : 'หยุด';
+      if (detecting) detectFrame();
     });
 
-    muteBtn.addEventListener('click',()=>{
-      isMuted=!isMuted;
-      muteText.textContent=isMuted?'เปิดเสียงพูด':'ปิดเสียงพูด';
+    muteBtn.addEventListener('click', () => {
+      isMuted = !isMuted;
+      muteText.textContent = isMuted ? 'เปิดเสียงพูด' : 'ปิดเสียงพูด';
     });
 
-    volumeSlider.addEventListener('input',()=>{
-      speechVolume=volumeSlider.value/100;
-      volumeValue.textContent=volumeSlider.value;
+    volumeSlider.addEventListener('input', () => {
+      speechVolume = volumeSlider.value / 100;
+      volumeValue.textContent = volumeSlider.value;
     });
 
-    cameraSelect.addEventListener('change',async()=>{
-      currentDeviceId=cameraSelect.value;
+    cameraSelect.addEventListener('change', async () => {
+      currentDeviceId = cameraSelect.value;
       await setupCamera(currentDeviceId);
     });
 
-    btnReset.addEventListener('click',()=>{
-      location.reload();
-    });
+    btnReset.addEventListener('click', () => { window.location.reload(); });
 
-    btnEvaluate.addEventListener('click',()=>{
-      alert('ฟังก์ชันประเมินผลยังไม่พร้อมใช้งาน');
+    // ปุ่มใหม่: เปิด Google Form
+    btnEvaluate.addEventListener('click', () => {
+      window.open('https://docs.google.com/forms/d/e/1FAIpQLScCIV2OwYBcNOznDynH_DthABwO_5OxiM4Dh78cMApQI1lfGg/viewform?usp=header', '_blank');
     });
   </script>
 </body>
