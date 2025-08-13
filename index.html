@@ -213,8 +213,8 @@
 
           <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
             <div style="flex:1">
-              <!-- เปลี่ยนปุ่ม: ถ่ายตัวอย่าง -> ประเมินผลและคำแนะนำ (ขนาดเดิม) -->
-              <button id="btnEvaluate" class="btn" style="width:100%"><span class="material-icons">assignment</span>ประเมินผลและคำแนะนำ</button>
+              <!-- ปุ่มเปลี่ยน: จาก 'ถ่ายตัวอย่าง' เป็น 'ประเมินผลและคำแนะนำ' -->
+              <button id="btnPreview" class="btn" style="width:100%"><span class="material-icons">assignment</span>ประเมินผลและคำแนะนำ</button>
             </div>
             <div style="width:48px;">
               <button id="btnReset" class="btn"><span class="material-icons">refresh</span></button>
@@ -280,7 +280,7 @@
     const message = document.getElementById('message');
     const camStatus = document.getElementById('camStatus');
     const detectStatus = document.getElementById('detectStatus');
-    const btnEvaluate = document.getElementById('btnEvaluate');
+    const btnPreview = document.getElementById('btnPreview');
     const btnReset = document.getElementById('btnReset');
 
     // State
@@ -320,8 +320,9 @@
       "box": "กล่อง"
     };
 
-    // list cameras (use after permission granted to show proper labels)
-    async function listCameras() {
+    // list cameras (เรียกตอนหลังอนุญาตกล้องเท่านั้น)
+    // เพิ่มพารามิเตอร์ preferDeviceId เพื่อไม่ให้เปลี่ยน selection ถ้ามีการกำหนดไว้
+    async function listCameras(preferDeviceId = null) {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
@@ -329,13 +330,18 @@
         videoDevices.forEach((device, idx) => {
           const option = document.createElement('option');
           option.value = device.deviceId;
-          // show label if available, otherwise fallback
           option.text = device.label || `กล้อง ${idx + 1}`;
           cameraSelect.appendChild(option);
         });
         if (videoDevices.length > 0) {
-          currentDeviceId = videoDevices[0].deviceId;
-          cameraSelect.value = currentDeviceId;
+          // ถ้ามี preferDeviceId และมีในรายการ ให้เลือกอันนั้น
+          if (preferDeviceId && videoDevices.some(d => d.deviceId === preferDeviceId)) {
+            currentDeviceId = preferDeviceId;
+            cameraSelect.value = preferDeviceId;
+          } else {
+            currentDeviceId = videoDevices[0].deviceId;
+            cameraSelect.value = currentDeviceId;
+          }
         }
       } catch (e) {
         message.textContent = 'ไม่สามารถดึงรายชื่อกล้องได้: ' + e.message;
@@ -448,6 +454,11 @@
       message.textContent = '';
       try {
         await setupCamera(deviceId);
+
+        // *** สำคัญ: เรียก listCameras() หลังจาก getUserMedia สำเร็จเท่านั้น ***
+        // ส่ง deviceId ที่เริ่มใช้งานเป็น preferDeviceId เพื่อให้ dropdown แสดงชื่อจริงและเลือกตัวเดียวกัน
+        await listCameras(deviceId);
+
         video.style.display = 'block';
 
         const trackLabel = (stream.getVideoTracks()[0].label || '').toLowerCase();
@@ -528,9 +539,10 @@
       }
     });
 
-    // ปุ่มประเมินผลและคำแนะนำ -> ไปยังลิงก์ฟอร์มที่กำหนด
-    btnEvaluate.addEventListener('click', () => {
-      window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLScCIV2OwYBcNOznDynH_DthABwO_5OxiM4Dh78cMApQI1lfGg/viewform?usp=header';
+    // เปลี่ยนการทำงานของปุ่ม: เปิดลิงก์ Google Form ในแท็บใหม่ (เป็น user gesture จึงไม่น่าถูกบล็อก)
+    btnPreview.addEventListener('click', () => {
+      const url = 'https://docs.google.com/forms/d/e/1FAIpQLScCIV2OwYBcNOznDynH_DthABwO_5OxiM4Dh78cMApQI1lfGg/viewform?usp=header';
+      window.open(url, '_blank');
     });
 
     btnReset.addEventListener('click', async () => {
@@ -544,7 +556,7 @@
       volumeValue.textContent = 100;
       speechVolume = 1.0;
       try {
-        // try to re-enumerate devices
+        // try to re-enumerate devices (เรียกหลังอนุญาตแล้วจะให้ label แสดง)
         await listCameras();
       } catch {}
     });
@@ -556,17 +568,15 @@
 
       try {
         await unlockAudio();         // unlock speech
-        await listCameras();         // get camera list (after permission allowed labels will appear)
+        // ลบการเรียก listCameras() ที่นี่ตามที่ขอ — ให้เรียก AFTER getUserMedia (ดูใน startCameraAndDetect)
         await startCameraAndDetect(currentDeviceId);
       } catch (e) {
         message.textContent = 'ไม่สามารถเริ่มใช้งานได้: ' + (e && e.message ? e.message : e);
       }
     });
 
-    // initial enumeration (labels often empty until permission granted, but populate fallback)
-    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-      listCameras().catch(()=>{/*ignore*/});
-    }
+    // หมายเหตุ: ไม่เรียก listCameras() ตอนโหลดหน้าแล้ว (เพื่อหลีกเลี่ยง label ว่างก่อนอนุญาต)
+    // (เดิมมีการเรียก listCameras() ที่นี่ — ถูกลบ ตามคำขอ)
   </script>
 </body>
 </html>
